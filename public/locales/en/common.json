@@ -595,7 +595,9 @@
         "public_ip": "Public IP",
         "region": "Region",
         "country": "Country",
-        "port_forwarded": "Port Forwarded"
+        "port_forwarded": "Port Forwarded",
+        "dns_status": "DNS Status",
+        "vpn_status": "VPN Status"
     },
     "hdhomerun": {
         "channels": "Channels",

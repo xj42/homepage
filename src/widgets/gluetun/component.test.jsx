@@ -14,11 +14,10 @@ import Component from "./component";
 describe("widgets/gluetun/component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useWidgetAPI.mockReturnValue({ data: undefined, error: undefined });
   });
 
   it("defaults fields and filters to 3 blocks while loading (no port_forwarded)", () => {
-    useWidgetAPI.mockReturnValue({ data: undefined, error: undefined });
-
     const service = { widget: { type: "gluetun", url: "http://x" } };
     const { container } = renderWithProviders(<Component service={service} />, { settings: { hideErrors: false } });
 
@@ -28,6 +27,8 @@ describe("widgets/gluetun/component", () => {
     expect(screen.getByText("gluetun.region")).toBeInTheDocument();
     expect(screen.getByText("gluetun.country")).toBeInTheDocument();
     expect(screen.queryByText("gluetun.port_forwarded")).toBeNull();
+    expect(screen.queryByText("gluetun.dns_status")).toBeNull();
+    expect(screen.queryByText("gluetun.vpn_status")).toBeNull();
   });
 
   it("renders error UI when widget API errors", () => {
@@ -65,5 +66,32 @@ describe("widgets/gluetun/component", () => {
     expectBlockValue(container, "gluetun.region", "CA");
     expectBlockValue(container, "gluetun.country", "US");
     expectBlockValue(container, "gluetun.port_forwarded", 12345);
+  });
+
+  it("includes DNS and VPN status when fields are configured", () => {
+    useWidgetAPI
+      .mockReturnValueOnce({ data: { public_ip: "1.2.3.4", region: "CA", country: "US" }, error: undefined })
+      .mockReturnValueOnce({ data: undefined, error: undefined })
+      .mockReturnValueOnce({ data: { status: "running" }, error: undefined })
+      .mockReturnValueOnce({ data: { status: "stopped" }, error: undefined });
+
+    const service = {
+      widget: {
+        type: "gluetun",
+        url: "http://x",
+        fields: ["public_ip", "region", "country", "dns_status", "vpn_status"],
+      },
+    };
+
+    const { container } = renderWithProviders(<Component service={service} />, { settings: { hideErrors: false } });
+
+    expect(useWidgetAPI.mock.calls[0][1]).toBe("ip");
+    expect(useWidgetAPI.mock.calls[1][1]).toBe("");
+    expect(useWidgetAPI.mock.calls[2][1]).toBe("dns_status");
+    expect(useWidgetAPI.mock.calls[3][1]).toBe("vpn_status");
+
+    expect(container.querySelectorAll(".service-block")).toHaveLength(5);
+    expectBlockValue(container, "gluetun.dns_status", "running");
+    expectBlockValue(container, "gluetun.vpn_status", "stopped");
   });
 });

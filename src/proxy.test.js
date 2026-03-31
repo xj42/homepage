@@ -9,7 +9,7 @@ const { NextResponse } = vi.hoisted(() => ({
 
 vi.mock("next/server", () => ({ NextResponse }));
 
-import { middleware } from "./middleware";
+import { proxy } from "./proxy";
 
 function createReq(host) {
   return {
@@ -19,7 +19,7 @@ function createReq(host) {
   };
 }
 
-describe("middleware", () => {
+describe("proxy", () => {
   const originalEnv = process.env;
   const originalConsoleError = console.error;
 
@@ -31,7 +31,7 @@ describe("middleware", () => {
 
   it("allows requests for default localhost hosts", () => {
     process.env.PORT = "3000";
-    const res = middleware(createReq("localhost:3000"));
+    const res = proxy(createReq("localhost:3000"));
 
     expect(NextResponse.next).toHaveBeenCalled();
     expect(res).toEqual({ type: "next" });
@@ -41,7 +41,7 @@ describe("middleware", () => {
     process.env.PORT = "3000";
     const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    const res = middleware(createReq("evil.com"));
+    const res = proxy(createReq("evil.com"));
 
     expect(errSpy).toHaveBeenCalled();
     expect(NextResponse.json).toHaveBeenCalledWith(
@@ -54,7 +54,7 @@ describe("middleware", () => {
 
   it("allows requests when HOMEPAGE_ALLOWED_HOSTS is '*'", () => {
     process.env.HOMEPAGE_ALLOWED_HOSTS = "*";
-    const res = middleware(createReq("anything.example"));
+    const res = proxy(createReq("anything.example"));
 
     expect(NextResponse.next).toHaveBeenCalled();
     expect(res).toEqual({ type: "next" });
@@ -64,7 +64,7 @@ describe("middleware", () => {
     process.env.PORT = "3000";
     process.env.HOMEPAGE_ALLOWED_HOSTS = "example.com:3000,other:3000";
 
-    const res = middleware(createReq("example.com:3000"));
+    const res = proxy(createReq("example.com:3000"));
 
     expect(NextResponse.next).toHaveBeenCalled();
     expect(res).toEqual({ type: "next" });

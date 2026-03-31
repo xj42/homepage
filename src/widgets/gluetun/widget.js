@@ -17,6 +17,14 @@ const widget = {
       endpoint: "portforward",
       validate: ["port"],
     },
+    dns_status: {
+      endpoint: "dns/status",
+      validate: ["status"],
+    },
+    vpn_status: {
+      endpoint: "vpn/status",
+      validate: ["status"],
+    },
   },
 };
 
