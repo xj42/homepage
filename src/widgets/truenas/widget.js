@@ -23,6 +23,10 @@ const widget = {
       wsMethod: "system.info",
       validate: ["loadavg", "uptime_seconds"],
     },
+    network: {
+      endpoint: "interface",
+      wsMethod: "interface.query",
+    },
     pools: {
       endpoint: "pool",
       wsMethod: "pool.query",

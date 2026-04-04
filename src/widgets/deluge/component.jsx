@@ -60,9 +60,16 @@ export default function Component({ service }) {
         leechTorrents.map((queueEntry) => (
           <QueueEntry
             progress={queueEntry.progress}
+            percentComplete={t("common.percent", { value: queueEntry.progress })}
+            speed={t("common.byterate", { value: queueEntry.download_payload_rate })}
             timeLeft={t("common.duration", { value: queueEntry.eta })}
             title={queueEntry.name}
             activity={queueEntry.state}
+            size={
+              widget?.enableLeechSize
+                ? t("common.bytes", { value: queueEntry.total_size, maximumFractionDigits: 1 })
+                : undefined
+            }
             key={`${queueEntry.name}-${queueEntry.total_remaining}`}
           />
         ))}

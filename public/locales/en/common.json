@@ -583,7 +583,9 @@
     "truenas": {
         "load": "System Load",
         "uptime": "Uptime",
-        "alerts": "Alerts"
+        "alerts": "Alerts",
+        "speed": "Network Speed",
+        "usage": "Network Usage"
     },
     "pyload": {
         "speed": "Speed",

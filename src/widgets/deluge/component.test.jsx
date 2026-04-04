@@ -11,7 +11,9 @@ const { useWidgetAPI } = vi.hoisted(() => ({ useWidgetAPI: vi.fn() }));
 vi.mock("utils/proxy/use-widget-api", () => ({ default: useWidgetAPI }));
 
 vi.mock("../../components/widgets/queue/queueEntry", () => ({
-  default: ({ title }) => <div data-testid="queue-entry">{title}</div>,
+  default: ({ title, percentComplete, speed, size }) => (
+    <div data-testid="queue-entry">{`${title}|${percentComplete ?? ""}|${speed ?? ""}|${size ?? ""}`}</div>
+  ),
 }));
 
 import Component from "./component";
@@ -44,6 +46,7 @@ describe("widgets/deluge/component", () => {
             download_payload_rate: 5,
             upload_payload_rate: 2,
             total_remaining: 5,
+            total_size: 100,
             state: "Downloading",
             progress: 50,
             eta: 60,
@@ -53,6 +56,7 @@ describe("widgets/deluge/component", () => {
             download_payload_rate: 0,
             upload_payload_rate: 3,
             total_remaining: 10,
+            total_size: 200,
             state: "Downloading",
             progress: 10,
             eta: 120,
@@ -73,6 +77,31 @@ describe("widgets/deluge/component", () => {
     expectBlockValue(container, "deluge.upload", 6);
 
     // Only downloading torrents get QueueEntry.
-    expect(screen.getAllByTestId("queue-entry").map((el) => el.textContent)).toEqual(["B", "C"]);
+    expect(screen.getAllByTestId("queue-entry").map((el) => el.textContent)).toEqual(["B|50|5|", "C|10|0|"]);
+  });
+
+  it("includes per-torrent size when enableLeechSize is enabled", () => {
+    useWidgetAPI.mockReturnValue({
+      data: {
+        torrents: {
+          b: {
+            download_payload_rate: 5,
+            upload_payload_rate: 2,
+            total_remaining: 5,
+            total_size: 100,
+            state: "Downloading",
+            progress: 50,
+            eta: 60,
+            name: "B",
+          },
+        },
+      },
+      error: undefined,
+    });
+
+    const service = { widget: { type: "deluge", enableLeechProgress: true, enableLeechSize: true } };
+    renderWithProviders(<Component service={service} />, { settings: { hideErrors: false } });
+
+    expect(screen.getAllByTestId("queue-entry").map((el) => el.textContent)).toEqual(["B|50|5|100"]);
   });
 });

@@ -10,7 +10,7 @@ Learn more about [TrueNas](https://www.truenas.com/).
 | < 26.04 (REST API)      | 1 (default)             |
 | > 25.04 (Websocket API) | 2                       |
 
-Allowed fields: `["load", "uptime", "alerts"]`.
+Allowed fields: `["load", "uptime", "alerts", "speed", "usage"]`.
 
 To create an API Key, follow [the official TrueNAS documentation](https://www.truenas.com/docs/scale/scaletutorials/toptoolbar/managingapikeys/).
 
