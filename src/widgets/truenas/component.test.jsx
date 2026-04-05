@@ -124,6 +124,26 @@ describe("widgets/truenas/component", () => {
     expect(screen.getByText("14")).toBeInTheDocument(); // speed
   });
 
+  it("falls back to reporting rates when byte counters are unavailable", () => {
+    useWidgetAPI.mockImplementation((widget, endpoint) => {
+      if (endpoint === "alerts") return { data: { pending: 1 }, error: undefined };
+      if (endpoint === "status") return { data: { loadavg: [0.5], uptime_seconds: 42 }, error: undefined };
+      if (endpoint === "network")
+        return {
+          data: [
+            { name: "eno1", rx_bytes_rate: 1_000_000, tx_bytes_rate: 2_000_000 },
+            { name: "eno2", rx_bytes_rate: 500_000, tx_bytes_rate: 250_000 },
+          ],
+          error: undefined,
+        };
+      return { data: undefined, error: undefined };
+    });
+
+    renderWithProviders(<Component service={{ widget: { type: "truenas" } }} />, { settings: { hideErrors: false } });
+
+    expect(screen.getAllByText("3750000")).toHaveLength(2); // usage + speed
+  });
+
   it("renders an error state when network endpoint fails", () => {
     useWidgetAPI.mockImplementation((widget, endpoint) => {
       if (endpoint === "alerts") return { data: { pending: 1 }, error: undefined };

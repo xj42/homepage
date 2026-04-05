@@ -37,7 +37,7 @@ function getInterfaces(networkData) {
 }
 
 function getNetworkTotals(networkData) {
-  return getInterfaces(networkData).reduce(
+  const totals = getInterfaces(networkData).reduce(
     (totals, networkInterface) => {
       const state = networkInterface?.state ?? {};
       const stats = networkInterface?.stats ?? networkInterface?.statistics ?? {};
@@ -78,6 +78,12 @@ function getNetworkTotals(networkData) {
     },
     { usage: 0, speed: 0 },
   );
+
+  if (totals.usage === 0 && totals.speed > 0) {
+    return { ...totals, usage: totals.speed };
+  }
+
+  return totals;
 }
 
 export default function Component({ service }) {

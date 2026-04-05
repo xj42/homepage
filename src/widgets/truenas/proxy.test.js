@@ -26,6 +26,7 @@ vi.mock("widgets/widgets", () => ({
       wsAPI: "{url}/websocket",
       mappings: {
         stats: { endpoint: "stats", wsMethod: "system.info" },
+        network: { endpoint: "network", wsMethod: "interface.query" },
       },
     },
   },
@@ -54,6 +55,10 @@ vi.mock("ws", () => {
       let result = true;
       if (msg.method === "system.info") {
         result = { ok: true };
+      } else if (msg.method === "reporting.netdata_graphs") {
+        result = [{ name: "interface", identifiers: ["eno1"] }];
+      } else if (msg.method === "reporting.netdata_get_data") {
+        result = [{ identifier: "eno1", data: [[1, 8, 16]] }];
       }
       queueMicrotask(() => {
         const set = this._handlers.get("message");
@@ -90,5 +95,22 @@ describe("widgets/truenas/proxy", () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toEqual({ ok: true });
+  });
+
+  it("uses reporting data for network endpoint when available", async () => {
+    getServiceWidget.mockResolvedValue({
+      type: "truenas",
+      url: "http://tn",
+      version: 2,
+      key: "apikey",
+    });
+
+    const req = { query: { group: "g", service: "svc", endpoint: "network", index: "0" } };
+    const res = createMockRes();
+
+    await truenasProxyHandler(req, res);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual([{ name: "eno1", rx_bytes_rate: 1000, tx_bytes_rate: 2000 }]);
   });
 });
